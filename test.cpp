@@ -8,6 +8,7 @@ extern "C" {
 #endif 
 
 #include <iostream>
+#include <cstdlib>
 #include <string>
 #include <vector>
 using namespace std;
@@ -50,7 +51,7 @@ static int execQuery(sqlite3 *db, const string &cmd, const string &debug_msg)
 	if (errMsg != NULL) {
 		cout << "[execQuery failed] at " << debug_msg << " : " << endl;
 		cout << errMsg << endl;  
-		free(errMsg);
+		sqlite3_free(errMsg);
 		return 1;
 	}
 	return 0;
@@ -115,7 +116,7 @@ public:
 		if (errMsg != NULL) {
 			cout << "getTable Error" << endl;
 			cout << errMsg << endl;
-			free(errMsg);
+			sqlite3_free(errMsg);
 			return -1;
 		}
 		cout << "rows: " << rows << " / cols: " << cols << endl;
