@@ -138,8 +138,8 @@ static int characterNext(
     
     c->pToken[length] = 0;
     memcpy(c->pToken, token, length);
-    
-    for (int i = 0; i < length; ++i) {
+    int i;
+    for (i = 0; i < length; ++i) {
         unsigned char byte = c->pToken[i];
 
         if (byte < 0x80) {
