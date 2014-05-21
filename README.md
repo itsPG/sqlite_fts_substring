@@ -13,7 +13,8 @@ I put SQLite3 and tokenizer together and write an example for them.
 How to Use it
 =============
 
-1.
+Build
+-----
 	git clone https://github.com/itsPG/sqlite_fts_substring.git
 	cd sqlite_fts_substring
 	make
@@ -21,7 +22,10 @@ How to Use it
 
 ./main will create example.db, add table, insert some records, and do the FTS.
 
-2. see test.cpp and modify it as you wish.
+Use
+---
+
+see test.cpp and modify it as you wish.
 
 Author
 ======
