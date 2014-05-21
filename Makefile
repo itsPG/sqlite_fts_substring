@@ -6,7 +6,7 @@ main: test.o sqlite3.o character_tokenizer.o
 	g++ $(FLAGS) -o $@ $^
 
 clean:
-	rm main *.o example.db
+	rm -f main *.o example.db
 
 %.o: %.cpp $(HEADERS)
 	g++ $(FLAGS) -c -o $@ $<
