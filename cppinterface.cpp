@@ -6,7 +6,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif 
-#define DEBUGINFO(stat) stat
 #define DEBUGMSG(msg) cout << msg << endl;
 #define DEBUGMSGN(msg) cout << msg;
 #include <iostream>
@@ -24,7 +23,6 @@ public:
 	{
 		vector<string> colsName;
 		vector< vector<string> > records;
-
 	};
 	int open(const string &path)
 	{
@@ -97,6 +95,7 @@ public:
 		if (ret) {
 			return ret;
 		}
+		DEBUGMSG("exec_and_show")
 		for (int i = 0; i < data.size(); i++) {
  			for (int j = 0; j < data[i].size(); j++) {
  				DEBUGMSGN(data[i][j] << "\t")
