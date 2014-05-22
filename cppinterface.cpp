@@ -24,6 +24,15 @@ public:
 		vector<string> colsName;
 		vector< vector<string> > records;
 	};
+	inline static void show_table(const vector< vector<string> > &data)
+	{
+		for (int i = 0; i < data.size(); i++) {
+			for (int j = 0; j < data[i].size(); j++) {
+				DEBUGMSGN(data[i][j] << "\t\033[0;33m|\033[0m")
+			}
+			DEBUGMSG("");
+		}
+	}
 	int open(const string &path)
 	{
 		return open(path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
@@ -96,12 +105,7 @@ public:
 			return ret;
 		}
 		DEBUGMSG("exec_and_show")
-		for (int i = 0; i < data.size(); i++) {
- 			for (int j = 0; j < data[i].size(); j++) {
- 				DEBUGMSGN(data[i][j] << "\t")
- 			}
- 			DEBUGMSG("");
- 		}
+		show_table(data);
  		return ret;
 	}
 	int exec(const string &cmd, int (*callback)(void*,int,char**,char**), void* data)
@@ -119,7 +123,21 @@ public:
 		execf will not use const string &cmd
 		because 'va_start' has undefined behavior with reference types.
 	*/
-	int execf(const string cmd, ...) 
+	int execf(const string cmd, vector< vector<string> > data, ...) 
+	{
+		int ret;
+		va_list argv;
+		char *szSQL;
+		va_start(argv, data);
+		szSQL = sqlite3_vmprintf(cmd.c_str(), argv);
+		ret = exec(string(szSQL), data);
+		sqlite3_free(szSQL);
+		return ret;
+	}
+	/*
+		execf without vector< vector<string> > data
+	*/
+	int execf_cmd_only(const string cmd, ...)
 	{
 		int ret;
 		va_list argv;
@@ -129,7 +147,6 @@ public:
 		ret = exec(string(szSQL));
 		sqlite3_free(szSQL);
 		return ret;
-
 	}
 	
 	int get_table(const string &query, int &rows, int &cols, vector< vector<string> > &result)
@@ -168,12 +185,7 @@ public:
 			return ret;
 		}
 		DEBUGMSG("get_table_and_show " << rows << " " << cols)
-		for (int i = 0; i < result.size(); ++i) {
-			for (int j = 0; j < result[i].size(); ++j) {
-				DEBUGMSGN(result[i][j] << " ")
-			}
-			DEBUGMSG("")
-		}
+		show_table(result);
 		return 0;
 	}
 	int get_table(const string &query, int &rows, int &cols, char **&result)
@@ -223,8 +235,8 @@ private:
 	}
 	inline void cmdFailed(const string &tag, const string &cmd, char *errMsg)
 	{
-		DEBUGMSG(">>> " << cmd)
-		DEBUGMSG("[SQLite3DB " << tag << " failed] " << errMsg)
+		DEBUGMSG("\033[0;33m>>> " << cmd << "\033[0m")
+		DEBUGMSG("\033[0;31m[SQLite3DB " << tag << " failed]\033[0m " << errMsg)
 		sqlite3_free(errMsg);
 	}
 };
@@ -236,6 +248,7 @@ int main()
 	PG.open("example.db");
 	PG.exec("asdf");
 	PG.get_table_and_show("SELECT * from note");
-	PG.execf("sjaksdf %Q %Q %d", "asdf", "ffff", 1234);
+	PG.execf_cmd_only("sjaksdf %Q %Q %d", "asdf", "ffff", 1234);
+	//PG.execf("");
 	PG.exec_and_show("select * from note");
 }
