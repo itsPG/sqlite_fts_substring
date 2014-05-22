@@ -53,15 +53,16 @@ public:
 	{
 		int ret;
 		ret = sqlite3_open_v2(path.c_str(), &db, flag, szVfs);
-		if (ret) {
+		if (ret != SQLITE_OK) {
 			DEBUGMSGRED("[SQLite3DB open error] @ sqlite3_open_v2")
-			return ret;
+			goto END;
 		}
 		ret = registerCharacterTokenizer();
-		if (ret) {
+		if (ret != SQLITE_OK) {
 			DEBUGMSGRED("[SQLite3DB open error] @ registerCharacterTokenizer")
-			return ret;
+			goto END;
 		}
+		END:
 		return ret;
 	}
 	int exec(const string &cmd)
@@ -90,7 +91,7 @@ public:
  		ret = sqlite3_exec(db, cmd.c_str(), _execDefaultCallback, &result, &szErrMsg);
  		if (ret != SQLITE_OK) {
  			cmdFailed("exec", cmd, szErrMsg);
- 			return ret;
+ 			goto END;
  		}
 
  		data.clear();
@@ -106,6 +107,7 @@ public:
  				data[i+1].push_back(result.records[i][j]);
  			}
  		}
+ 		END:
  		return ret;
 	}
 	int exec_and_show(const string &cmd)
@@ -113,11 +115,12 @@ public:
 		int ret;
 		vector< vector<string> > data;
 		ret = exec(cmd, data);
-		if (ret) {
-			return ret;
+		if (ret != SQLITE_OK) {
+			goto END;
 		}
 		DEBUGMSG("exec_and_show")
 		show_table(data);
+		END:
  		return ret;
 	}
 	int exec(const string &cmd, int (*callback)(void*,int,char**,char**), void* pData)
@@ -127,9 +130,10 @@ public:
 		ret = sqlite3_exec(db, cmd.c_str(), callback, pData, &szErrMsg);
 		if (szErrMsg != NULL) {
 			cmdFailed("exec", cmd, szErrMsg);
-			return ret;
+			goto END;
 		}
-		return 0;
+		END:
+		return ret;
 	}
 	/*
 		execf will not use reference.
@@ -166,8 +170,8 @@ public:
 		char **result_tmp;
 		int ret;
 		ret = get_table(query, rows, cols, result_tmp);
-		if (ret) {
-			return ret;
+		if (ret != SQLITE_OK) {
+			goto END;
 		}
 		result.clear();
 		for (int i = 0; i <= rows; ++i) {
@@ -177,38 +181,43 @@ public:
 				result[i].push_back(result_tmp[i*cols+j]);
 			}
 		}
-		return 0;
+		END:
+		return ret;
 	}
 	int get_table(const string &query, vector< vector<string> > &result)
 	{
 		int ret, rows, cols;
 		ret = get_table(query, rows, cols, result);
-		if (ret) {
-			return ret;
+		if (ret != SQLITE_OK) {
+			goto END;
 		}
-		return 0;
+		END:
+		return ret;
 	}
 	int get_table_and_show(const string &query)
 	{
 		int ret, rows, cols;
 		vector< vector<string> > result;
 		ret = get_table(query, rows, cols, result);
-		if (ret) {
-			return ret;
+		if (ret != SQLITE_OK) {
+			goto END;
 		}
 		DEBUGMSG("get_table_and_show " << rows << " " << cols)
 		show_table(result);
-		return 0;
+		END:
+		return ret;
 	}
 	int get_table(const string &query, int &rows, int &cols, char **&result)
 	{
+		int ret;
 		char *szErrMsg = NULL;
-		sqlite3_get_table(db, query.c_str(), &result, &rows, &cols, &szErrMsg);
-		if (szErrMsg != NULL) {
+		ret = sqlite3_get_table(db, query.c_str(), &result, &rows, &cols, &szErrMsg);
+		if (ret != SQLITE_OK) {
 			cmdFailed("get_table", query, szErrMsg);
-			return 1;
+			goto END;
 		}
-		return 0;
+		END:
+		return ret;
 	}
 	sqlite3 *getDB()
 	{
@@ -240,7 +249,7 @@ private:
 		const sqlite3_tokenizer_module *ptr;
 		get_character_tokenizer_module(&ptr);
 		ret = registerTokenizer(db, tokenName.c_str(), ptr);
-		if (ret) {
+		if (ret != SQLITE_OK) {
 			DEBUGMSGRED("[SQLite3DB init error] can't register character tokenizer")
 		}
 		return ret;
