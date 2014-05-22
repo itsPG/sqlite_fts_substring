@@ -68,9 +68,9 @@ public:
 	{
 		return exec(cmd, 0, 0);
 	}
-	static int _execDefaultCallback(void *data, int argc, char **cols, char **colsName)
+	static int _execDefaultCallback(void *pData, int argc, char **cols, char **colsName)
 	{
-		EXEC_RESULT *result = (EXEC_RESULT*) data;
+		EXEC_RESULT *result = (EXEC_RESULT*) pData;
 		result->records.push_back(vector<string>());
 		for (int i = 0; i < argc; i++) {
 			int pos = result->records.size() - 1;
