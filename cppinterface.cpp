@@ -120,17 +120,17 @@ public:
 		return 0;
 	}
 	/*
-		execf will not use const string &cmd
+		execf will not use reference.
 		because 'va_start' has undefined behavior with reference types.
 	*/
-	int execf(const string cmd, vector< vector<string> > data, ...) 
+	int execf(vector< vector<string> > *data, const string cmd, ...) 
 	{
 		int ret;
 		va_list argv;
 		char *szSQL;
-		va_start(argv, data);
+		va_start(argv, cmd);
 		szSQL = sqlite3_vmprintf(cmd.c_str(), argv);
-		ret = exec(string(szSQL), data);
+		ret = exec(string(szSQL), *data);
 		sqlite3_free(szSQL);
 		return ret;
 	}
@@ -249,6 +249,7 @@ int main()
 	PG.exec("asdf");
 	PG.get_table_and_show("SELECT * from note");
 	PG.execf_cmd_only("sjaksdf %Q %Q %d", "asdf", "ffff", 1234);
-	//PG.execf("");
-	PG.exec_and_show("select * from note");
+	PG.execf(&tmp, "SELECT * from %q", "note");
+	PG.show_table(tmp);
+	//PG.exec_and_show("select * from note");
 }
