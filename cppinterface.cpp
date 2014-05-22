@@ -19,7 +19,13 @@ using namespace std;
 class SQLite3DBCommand
 {
 public:
+	
+	struct EXEC_RESULT
+	{
+		vector<string> colsName;
+		vector< vector<string> > records;
 
+	};
 	int open(const string &path)
 	{
 		return open(path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
@@ -43,6 +49,62 @@ public:
 	{
 		return exec(cmd, 0, 0);
 	}
+	static int _execDefaultCallback(void *data, int argc, char **cols, char **colsName)
+	{
+		EXEC_RESULT *result = (EXEC_RESULT*) data;
+		result->records.push_back(vector<string>());
+		for (int i = 0; i < argc; i++) {
+			int pos = result->records.size() - 1;
+			if (pos == 0) {
+				result->colsName.push_back(colsName[i]);
+			}
+			result->records[pos].push_back(cols[i]);
+		}
+		return 0;
+	}
+	int exec(const string &cmd, vector< vector<string> > &data)
+	{
+		int ret;
+		EXEC_RESULT result;
+		char *errMsg = NULL;
+		
+ 		ret = sqlite3_exec(db, cmd.c_str(), _execDefaultCallback, &result, &errMsg);
+ 		if (ret != SQLITE_OK) {
+ 			cmdFailed("exec", cmd, errMsg);
+ 			return ret;
+ 		}
+
+ 		data.clear();
+ 		// use '<=' instead of '<' for colsName 
+ 		for (int i = 0; i <= result.records.size(); i++) {
+ 			data.push_back(vector<string>());
+ 		}
+ 		for (int i = 0; i < result.colsName.size(); i++) {
+ 			data[0].push_back(result.colsName[i]);
+ 		}
+ 		for (int i = 0; i < result.records.size(); i++) {
+ 			for (int j = 0; j < result.records[i].size(); j++) {
+ 				data[i+1].push_back(result.records[i][j]);
+ 			}
+ 		}
+ 		return ret;
+	}
+	int exec_and_show(const string &cmd)
+	{
+		int ret;
+		vector< vector<string> > data;
+		ret = exec(cmd, data);
+		if (ret) {
+			return ret;
+		}
+		for (int i = 0; i < data.size(); i++) {
+ 			for (int j = 0; j < data[i].size(); j++) {
+ 				DEBUGMSGN(data[i][j] << "\t")
+ 			}
+ 			DEBUGMSG("");
+ 		}
+ 		return ret;
+	}
 	int exec(const string &cmd, int (*callback)(void*,int,char**,char**), void* data)
 	{
 		int ret;
@@ -60,12 +122,15 @@ public:
 	*/
 	int execf(const string cmd, ...) 
 	{
+		int ret;
 		va_list argv;
 		char *szSQL;
 		va_start(argv, cmd);
 		szSQL = sqlite3_vmprintf(cmd.c_str(), argv);
-		exec(string(szSQL));
+		ret = exec(string(szSQL));
 		sqlite3_free(szSQL);
+		return ret;
+
 	}
 	
 	int get_table(const string &query, int &rows, int &cols, vector< vector<string> > &result)
@@ -86,10 +151,9 @@ public:
 		}
 		return 0;
 	}
-	int get_table(const string &query)
+	int get_table(const string &query, vector< vector<string> > &result)
 	{
 		int ret, rows, cols;
-		vector< vector<string> > result;
 		ret = get_table(query, rows, cols, result);
 		if (ret) {
 			return ret;
@@ -164,15 +228,15 @@ private:
 		DEBUGMSG("[SQLite3DB " << tag << " failed] " << errMsg)
 		sqlite3_free(errMsg);
 	}
-
 };
 
 int main()
 {
 	SQLite3DBCommand PG;
+	vector< vector<string> > tmp;
 	PG.open("example.db");
 	PG.exec("asdf");
-	PG.get_table_and_show("SELECT * from note-");
+	PG.get_table_and_show("SELECT * from note");
 	PG.execf("sjaksdf %Q %Q %d", "asdf", "ffff", 1234);
-
+	PG.exec_and_show("select * from note");
 }
