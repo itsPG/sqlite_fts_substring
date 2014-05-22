@@ -19,10 +19,18 @@ extern "C" {
 using namespace std;
 //int db;
 
-class SQLite3DBCommand
+class SQLite3Command
 {
 public:
-	
+	SQLite3Command()
+	{
+		db = NULL;
+
+	}
+	~SQLite3Command()
+	{
+		sqlite3_free(db);
+	}
 	struct EXEC_RESULT
 	{
 		vector<string> colsName;
@@ -247,7 +255,9 @@ private:
 
 int main()
 {
-	SQLite3DBCommand PG;
+	SQLite3Command PG;
+	SQLite3Command *ptr = new SQLite3Command();
+	delete ptr;
 	vector< vector<string> > tmp;
 	PG.open("example.db");
 	PG.exec("asdf");
