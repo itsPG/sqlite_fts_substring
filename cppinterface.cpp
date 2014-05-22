@@ -85,11 +85,11 @@ public:
 	{
 		int ret;
 		EXEC_RESULT result;
-		char *errMsg = NULL;
+		char *szErrMsg = NULL;
 		
- 		ret = sqlite3_exec(db, cmd.c_str(), _execDefaultCallback, &result, &errMsg);
+ 		ret = sqlite3_exec(db, cmd.c_str(), _execDefaultCallback, &result, &szErrMsg);
  		if (ret != SQLITE_OK) {
- 			cmdFailed("exec", cmd, errMsg);
+ 			cmdFailed("exec", cmd, szErrMsg);
  			return ret;
  		}
 
@@ -120,13 +120,13 @@ public:
 		show_table(data);
  		return ret;
 	}
-	int exec(const string &cmd, int (*callback)(void*,int,char**,char**), void* data)
+	int exec(const string &cmd, int (*callback)(void*,int,char**,char**), void* pData)
 	{
 		int ret;
-		char *errMsg = NULL;
-		ret = sqlite3_exec(db, cmd.c_str(), callback, data, &errMsg);
-		if (errMsg != NULL) {
-			cmdFailed("exec", cmd, errMsg);
+		char *szErrMsg = NULL;
+		ret = sqlite3_exec(db, cmd.c_str(), callback, pData, &szErrMsg);
+		if (szErrMsg != NULL) {
+			cmdFailed("exec", cmd, szErrMsg);
 			return ret;
 		}
 		return 0;
@@ -135,14 +135,14 @@ public:
 		execf will not use reference.
 		because 'va_start' has undefined behavior with reference types.
 	*/
-	int execf(vector< vector<string> > *data, const string cmd, ...) 
+	int execf(vector< vector<string> > *pData, const string cmd, ...) 
 	{
 		int ret;
 		va_list argv;
 		char *szSQL;
 		va_start(argv, cmd);
 		szSQL = sqlite3_vmprintf(cmd.c_str(), argv);
-		ret = exec(string(szSQL), *data);
+		ret = exec(string(szSQL), *pData);
 		sqlite3_free(szSQL);
 		return ret;
 	}
@@ -202,10 +202,10 @@ public:
 	}
 	int get_table(const string &query, int &rows, int &cols, char **&result)
 	{
-		char *errMsg = NULL;
-		sqlite3_get_table(db, query.c_str(), &result, &rows, &cols, &errMsg);
-		if (errMsg != NULL) {
-			cmdFailed("get_table", query, errMsg);
+		char *szErrMsg = NULL;
+		sqlite3_get_table(db, query.c_str(), &result, &rows, &cols, &szErrMsg);
+		if (szErrMsg != NULL) {
+			cmdFailed("get_table", query, szErrMsg);
 			return 1;
 		}
 		return 0;
@@ -245,11 +245,11 @@ private:
 		}
 		return ret;
 	}
-	inline void cmdFailed(const string &tag, const string &cmd, char *errMsg)
+	inline void cmdFailed(const string &tag, const string &cmd, char *szErrMsg)
 	{
 		DEBUGMSGBROWN(">>> " << cmd)
-		DEBUGMSGRED("[SQLite3DB " << tag << " failed] " << errMsg)
-		sqlite3_free(errMsg);
+		DEBUGMSGRED("[SQLite3DB " << tag << " failed] " << szErrMsg)
+		sqlite3_free(szErrMsg);
 	}
 };
 
