@@ -5,7 +5,11 @@ extern "C" {
 #include "character_tokenizer.h"
 #ifdef __cplusplus
 }
-#endif 
+#endif
+#define DEBUGMSGRED(msg) cout << "\033[0;31m" << msg << "\033[0m" << endl;
+#define DEBUGMSGGREEN(msg) cout << "\033[0;32m" << msg << "\033[0m" << endl;
+#define DEBUGMSGBROWN(msg) cout << "\033[0;33m" << msg << "\033[0m" << endl;
+#define DEBUGMSGCYAN(msg) cout << "\033[0;36m" << msg << "\033[0m" << endl;
 #define DEBUGMSG(msg) cout << msg << endl;
 #define DEBUGMSGN(msg) cout << msg;
 #include <iostream>
@@ -42,12 +46,12 @@ public:
 		int ret;
 		ret = sqlite3_open_v2(path.c_str(), &db, flag, szVfs);
 		if (ret) {
-			DEBUGMSG("[SQLite3DB open error] @ sqlite3_open_v2")
+			DEBUGMSGRED("[SQLite3DB open error] @ sqlite3_open_v2")
 			return ret;
 		}
 		ret = registerCharacterTokenizer();
 		if (ret) {
-			DEBUGMSG("[SQLite3DB open error] @ registerCharacterTokenizer")
+			DEBUGMSGRED("[SQLite3DB open error] @ registerCharacterTokenizer")
 			return ret;
 		}
 		return ret;
@@ -229,14 +233,14 @@ private:
 		get_character_tokenizer_module(&ptr);
 		ret = registerTokenizer(db, tokenName.c_str(), ptr);
 		if (ret) {
-			DEBUGMSG("[SQLite3DB init error] can't register character tokenizer")
+			DEBUGMSGRED("[SQLite3DB init error] can't register character tokenizer")
 		}
 		return ret;
 	}
 	inline void cmdFailed(const string &tag, const string &cmd, char *errMsg)
 	{
-		DEBUGMSG("\033[0;33m>>> " << cmd << "\033[0m")
-		DEBUGMSG("\033[0;31m[SQLite3DB " << tag << " failed]\033[0m " << errMsg)
+		DEBUGMSGBROWN(">>> " << cmd)
+		DEBUGMSGRED("[SQLite3DB " << tag << " failed] " << errMsg)
 		sqlite3_free(errMsg);
 	}
 };
@@ -249,7 +253,15 @@ int main()
 	PG.exec("asdf");
 	PG.get_table_and_show("SELECT * from note");
 	PG.execf_cmd_only("sjaksdf %Q %Q %d", "asdf", "ffff", 1234);
-	PG.execf(&tmp, "SELECT * from %q", "note");
+	DEBUGMSGGREEN("=== result of INSERT")
+	PG.execf(&tmp, "INSERT INTO note VALUES(%Q, %Q);", "Insert Test", "Insert Content");
+	PG.show_table(tmp);
+	DEBUGMSGGREEN("=== result of SELECT")
+	PG.execf(&tmp, "SELECT * from note");
 	PG.show_table(tmp);
 	//PG.exec_and_show("select * from note");
+	DEBUGMSGRED("Red test")
+	DEBUGMSGGREEN("Green test")
+	DEBUGMSGBROWN("Brown test")
+	DEBUGMSGCYAN("Cyan test")
 }
