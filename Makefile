@@ -5,12 +5,12 @@ endif
 
 HEADERS = $(wildcard *.h)
 
-all: main cppinterface
+all: main sqlite3commandTest
 
 main: test.o sqlite3.o character_tokenizer.o
 	g++ $(FLAGS) -o $@ $^
 
-cppinterface: cppinterface.o sqlite3.o character_tokenizer.o
+sqlite3commandTest: test_sqlite3command.o sqlite3command.o sqlite3.o character_tokenizer.o
 	g++ $(FLAGS) -o $@ $^
 
 clean:
