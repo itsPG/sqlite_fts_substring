@@ -1,3 +1,7 @@
+main
+sqlite3commandTest
+*.db
+
 # Compiled Object files
 *.slo
 *.lo

@@ -4,22 +4,24 @@ FLAGS = -DSQLITE_ENABLE_FTS3
 endif
 
 HEADERS = $(wildcard *.h)
+CXX = g++
+CC = gcc
 
 all: main sqlite3commandTest
 
 main: test.o sqlite3.o character_tokenizer.o
-	g++ $(FLAGS) -o $@ $^
+	$(CXX) $(FLAGS) -o $@ $^
 
 sqlite3commandTest: test_sqlite3command.o sqlite3command.o sqlite3.o character_tokenizer.o
-	g++ $(FLAGS) -o $@ $^
+	$(CXX) $(FLAGS) -o $@ $^
 
 clean:
-	rm -f main *.o example.db
+	rm -f main *.o example.db sqlite3commandTest
 
 %.o: %.cpp $(HEADERS)
-	g++ $(FLAGS) -c -o $@ $<
+	$(CXX) $(FLAGS) -c -o $@ $<
 
 %.o: %.c $(HEADERS)
-	gcc $(FLAGS) -c -o $@ $<
+	$(CC) $(FLAGS) -c -o $@ $<
 
 
